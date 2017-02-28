@@ -571,29 +571,29 @@ let call_of_string str =
       | _ ->
         raise (Malformed_method_request "jsonrpc")
     in
-    let (_:int64) = match get "id" d with Int i -> i | _ -> raise (Malformed_method_request str) in
-    call name params
+    let (id:int64 option) = match get "id" d with Int i -> Some i | _ -> None in
+    call id name params
   | _ -> raise (Malformed_method_request str)
 
 let response_of_stream str =
   match Parser.of_stream str with
   | Dict d ->
-    let (_:int64) = match get "id" d with Int i -> i | _ -> raise (Malformed_method_response "id") in
+    let (id:int64 option) = match get "id" d with Int i -> Some i | _ -> None in
     begin match get' "jsonrpc" d with
     | None ->
       let result = get "result" d in
       let error = get "error" d in
       begin match result, error with
-        | v, Null    -> success v
-        | Null, v    -> failure v
+        | v, Null    -> success id v
+        | Null, v    -> failure id v
         | x,y        -> raise (Malformed_method_response (Printf.sprintf "<result=%s><error=%s>" (Rpc.to_string x) (Rpc.to_string y)))
       end
     | Some (String "2.0") ->
       let result = get' "result" d in
       let error = get' "error" d in
       begin match result, error with
-        | Some v, None    -> success v
-        | None, Some v    -> failure v
+        | Some v, None    -> success id v
+        | None, Some v    -> failure id v
         | Some x, Some y  -> raise (Malformed_method_response (Printf.sprintf "<result=%s><error=%s>" (Rpc.to_string x) (Rpc.to_string y)))
         | None, None      -> raise (Malformed_method_response (Printf.sprintf "neither <result> nor <error> was found"))
       end

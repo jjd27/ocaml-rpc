@@ -94,16 +94,18 @@ let struct_extend rpc default_rpc =
 type callback = string list -> t -> unit
 
 type call = {
+  mutable id: int64 option;
   name: string;
   params: t list;
 }
 
-let call name params = { name = name; params = params }
+let call id name params = { id = id; name = name; params = params }
 
 let string_of_call call =
   sprintf "-> %s(%s)" call.name (String.concat "," (List.map to_string call.params))
 
 type response = {
+  mutable id: int64 option;
   success: bool;
   contents: t;
 }
@@ -111,5 +113,5 @@ type response = {
 let string_of_response response =
   sprintf "<- %s(%s)" (if response.success then "success" else "failure") (to_string response.contents)
 
-let success v = { success = true; contents = v }
-let failure v = { success = false; contents = v }
+let success id v = { success = true; id = id; contents = v }
+let failure id v = { success = false; id = id; contents = v }

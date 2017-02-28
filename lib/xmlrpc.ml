@@ -379,7 +379,7 @@ let call_of_string ?callback str =
           done;
         ) input
     ) input;
-  call !name (List.rev !params)
+  call None !name (List.rev !params)
 
 let response_of_fault ?callback input =
   Parser.map_tag "fault" (fun input ->
@@ -387,7 +387,7 @@ let response_of_fault ?callback input =
       | Dict d ->
         let fault_code = List.assoc "faultCode" d in
         let fault_string = List.assoc "faultString" d in
-        failure ( Rpc.Enum [ String "fault"; fault_code; fault_string ] )
+        failure None ( Rpc.Enum [ String "fault"; fault_code; fault_string ] )
       | r      -> parse_error (to_string r) "fault" input
     ) input
 
@@ -397,12 +397,12 @@ let response_of_success ?callback input =
           match Parser.of_xml ?callback [] input with
           | Dict d ->
             if List.mem_assoc "Status" d && List.assoc "Status" d = String "Success" && List.mem_assoc "Value" d then
-              success (List.assoc "Value" d)
+              success None (List.assoc "Value" d)
             else if List.mem_assoc "Status" d && List.assoc "Status" d = String "Failure" && List.mem_assoc "ErrorDescription" d then
-              failure (List.assoc "ErrorDescription" d)
+              failure None (List.assoc "ErrorDescription" d)
             else
-              success (Dict d)
-          | v  -> success v
+              success None (Dict d)
+          | v  -> success None v
         ) input
     ) input
 

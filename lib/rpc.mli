@@ -63,20 +63,20 @@ val rpc_of_unit : unit -> t
 
 type callback = string list -> t -> unit
 
-type call = { name : string; params : t list }
+type call = { mutable id : int64 option; name : string; params : t list }
 
-val call : string -> t list -> call
+val call : int64 option -> string -> t list -> call
 
 val string_of_call : call -> string
 
 (** {2 Responses} *)
 
-type response = { success : bool; contents : t }
+type response = { mutable id : int64 option; success : bool; contents : t }
 
 val string_of_response : response -> string
 
-val success : t -> response
-val failure : t -> response
+val success : int64 option -> t -> response
+val failure : int64 option -> t -> response
 
 (** {2 Run-time errors} *)
 
